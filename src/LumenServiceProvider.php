@@ -1,6 +1,5 @@
 <?php namespace Cviebrock\LaravelElasticsearch;
 
-use Elasticsearch\Client;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
 
@@ -9,7 +8,7 @@ use Illuminate\Support\ServiceProvider as BaseServiceProvider;
  *
  * @package Cviebrock\LaravelElasticsearch
  */
-class ServiceProvider extends BaseServiceProvider
+class LumenServiceProvider extends BaseServiceProvider
 {
 
     /**
@@ -18,19 +17,6 @@ class ServiceProvider extends BaseServiceProvider
      * @var bool
      */
     protected $defer = false;
-
-    /**
-     * Bootstrap the application events.
-     *
-     * @return void
-     */
-    public function boot()
-    {
-        $configPath = realpath(__DIR__ . '/../config/elasticsearch.php');
-        $this->publishes([
-            $configPath => config_path('elasticsearch.php'),
-        ]);
-    }
 
     /**
      * Register the service provider.
@@ -46,11 +32,16 @@ class ServiceProvider extends BaseServiceProvider
         });
 
         $app->singleton('elasticsearch', function($app) {
-            return new Manager($app, $app['elasticsearch.factory']);
+            return new LumenManager($app, $app['elasticsearch.factory']);
         });
+        
+        $app->alias('elasticsearch', LumenManager::class);
 
-        $app->singleton(Client::class, function($app) {
-            return $app['elasticsearch']->connection();
-        });
+        $this->withFacades();
+    }
+
+    protected function withFacades()
+    {
+        class_alias('\Cviebrock\LaravelElasticsearch\Facade', 'Elasticsearch');
     }
 }

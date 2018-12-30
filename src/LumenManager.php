@@ -8,7 +8,7 @@ use Illuminate\Contracts\Foundation\Application;
  *
  * @package Cviebrock\LaravelElasticsearch
  */
-class Manager
+class LumenManager
 {
 
     /**
@@ -36,7 +36,7 @@ class Manager
      * @param Application $app
      * @param Factory $factory
      */
-    public function __construct(Application $app, Factory $factory)
+    public function __construct($app, Factory $factory)
     {
         $this->app = $app;
         $this->factory = $factory;

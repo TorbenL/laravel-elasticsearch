@@ -1,8 +1,8 @@
 <?php namespace Cviebrock\LaravelElasticsearch;
 
-use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
 use Psr\Log\LoggerInterface;
+
 
 class Factory
 {
@@ -22,7 +22,6 @@ class Factory
         'serializer'         => 'setSerializer',
         'connectionFactory'  => 'setConnectionFactory',
         'endpoint'           => 'setEndpoint',
-        'namespaces'         => 'registerNamespace',
     ];
 
     /**
@@ -30,7 +29,6 @@ class Factory
      * the default client.
      *
      * @param array $config
-     *
      * @return \Elasticsearch\Client|mixed
      */
     public function make(array $config)
@@ -43,11 +41,11 @@ class Factory
      * Build and configure an Elasticsearch client.
      *
      * @param array $config
-     *
      * @return \Elasticsearch\Client
      */
-    protected function buildClient(array $config): Client
+    protected function buildClient(array $config)
     {
+
         $clientBuilder = ClientBuilder::create();
 
         // Configure hosts
@@ -62,7 +60,7 @@ class Factory
             $logLevel = array_get($config, 'logLevel');
             if ($logObject && $logObject instanceof LoggerInterface) {
                 $clientBuilder->setLogger($logObject);
-            } elseif ($logPath && $logLevel) {
+            } else if ($logPath && $logLevel) {
                 $logObject = ClientBuilder::defaultLogger($logPath, $logLevel);
                 $clientBuilder->setLogger($logObject);
             }
@@ -72,60 +70,8 @@ class Factory
 
         foreach ($this->configMappings as $key => $method) {
             $value = array_get($config, $key);
-            if (is_array($value)) {
-                foreach ($value as $vItem) {
-                    $clientBuilder->$method($vItem);
-                }
-            } elseif ($value !== null) {
-                $clientBuilder->$method($value);
-            }
-        }
-
-        // Configure handlers for any AWS hosts
-
-        foreach ($config['hosts'] as $host) {
-            if (isset($host['aws']) && $host['aws']) {
-                $clientBuilder->setHandler(function(array $request) use ($host) {
-                    $psr7Handler = \Aws\default_http_handler();
-                    $signer = new \Aws\Signature\SignatureV4('es', $host['aws_region']);
-                    $request['headers']['Host'][0] = parse_url($request['headers']['Host'][0])['host'];
-
-                    // Create a PSR-7 request from the array passed to the handler
-                    $psr7Request = new \GuzzleHttp\Psr7\Request(
-                        $request['http_method'],
-                        (new \GuzzleHttp\Psr7\Uri($request['uri']))
-                            ->withScheme($request['scheme'])
-                            ->withHost($request['headers']['Host'][0]),
-                        $request['headers'],
-                        $request['body']
-                    );
-
-                    // Sign the PSR-7 request with credentials from the environment
-                    $signedRequest = $signer->signRequest(
-                        $psr7Request,
-                        new \Aws\Credentials\Credentials($host['aws_key'], $host['aws_secret'])
-                    );
-
-                    // Send the signed request to Amazon ES
-                    /** @var \Psr\Http\Message\ResponseInterface $response */
-                    $response = $psr7Handler($signedRequest)
-                        ->then(function(\Psr\Http\Message\ResponseInterface $response) {
-                            return $response;
-                        }, function($error) {
-                            return $error['response'];
-                        })
-                        ->wait();
-
-                    // Convert the PSR-7 response to a RingPHP response
-                    return new \GuzzleHttp\Ring\Future\CompletedFutureArray([
-                        'status'         => $response->getStatusCode(),
-                        'headers'        => $response->getHeaders(),
-                        'body'           => $response->getBody()
-                                                     ->detach(),
-                        'transfer_stats' => ['total_time' => 0],
-                        'effective_url'  => (string)$psr7Request->getUri(),
-                    ]);
-                });
+            if ($value !== null) {
+                call_user_func([$clientBuilder, $method], $value);
             }
         }
 

@@ -10,40 +10,45 @@ An easy way to use the [official Elastic Search client](https://github.com/elast
 
 * [Installation and Configuration](#installation-and-configuration)
 * [Usage](#usage)
-* [Advanced Usage](#advanced-usage)
-* [Bugs, Suggestions, Contributions and Support](#bugs-suggestions-contributions-and-support)
+* [Bugs, Suggestions and Contributions](#bugs-suggestions-and-contributions)
 * [Copyright and License](#copyright-and-license)
 
 
 
 ## Installation and Configuration
 
-Install the current version of the `cviebrock/laravel-elasticsearch` package via composer:
+Install the `cviebrock/laravel-elasticsearch` package via composer:
 
-```sh
+```shell
 composer require cviebrock/laravel-elasticsearch
 ```
 
-If you are using ElasticSearch version 5, then install version 2 of this package:
+### Laravel 
 
-```sh
-composer require cviebrock/laravel-elasticsearch:^2
+Add the service provider and facade to `config/app.php`:
+
+```php
+'providers' => [
+    ...
+    Cviebrock\LaravelElasticsearch\ServiceProvider::class,   
+]
+
+'aliases' => [
+    ...
+    'Elasticsearch' => Cviebrock\LaravelElasticsearch\Facade::class,
+]
 ```
-
-### Laravel
-
-The package's service provider will automatically register its service provider.
-
+    
 Publish the configuration file:
 
-```sh
+```shell
 php artisan vendor:publish --provider="Cviebrock\LaravelElasticsearch\ServiceProvider"
 ```
 
 ##### Alternative configuration method via .env file
 
-After you publish the configuration file as suggested above, you may configure ElasticSearch
-by adding the following to your application's `.env` file (with appropriate values):
+After you publish the configuration file as suggested above, you may configure Elastic Search
+by adding the following to laravel `.env` file
   
 ```ini
 ELASTICSEARCH_HOST=localhost
@@ -51,28 +56,23 @@ ELASTICSEARCH_PORT=9200
 ELASTICSEARCH_SCHEME=http
 ELASTICSEARCH_USER=
 ELASTICSEARCH_PASS=
-```
-
-If you are connecting to ElasticSearch instances on Amazon AWS, then you can also 
-add the following to your `.env` file:
-
-```ini
-AWS_ELASTICSEARCH_ENABLED=true
-AWS_REGION=...
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_ID=...
 ```  
 
 ### Lumen
 
-If you work with Lumen, please register the service provider and configuration in `bootstrap/app.php`:
+If you work with Lumen, please register the LumenServiceProvider in `bootstrap/app.php`:
 
 ```php
-$app->register(Cviebrock\LaravelElasticsearch\ServiceProvider::class);
-$app->configure('elasticsearch');
+$app->register(Cviebrock\LaravelElasticsearch\LumenServiceProvider::class);
 ```
 
-Manually copy the configuration file to your application.
+And manually copy the configuration file to your application.
+
+**Note:** don't forget to register your elasticsearch.php config in bootstrap/app.php
+
+```php
+$app->configure('elasticsearch');
+```
 
 
 
@@ -109,84 +109,27 @@ the configuration file).
 $return = Elasticsearch::connection('connectionName')->index($data);
 ```
 
-Lumen users who wish to use Facades can do so by editing the 
-`bootstrap/app.php` file to include the following:
-
-```php
-$app->withFacades(true, [
-    ...
-    Cviebrock\LaravelElasticsearch\Facade::class => 'Elasticsearch',
-    ...
-]);
-```
-
-Lumen users who aren't using facades will need to use dependency injection 
-or the application container in order to get the ES service object:
+Lumen users who aren't using facades will need to use dependency injection or the application container
+in order to get the ES service object:
 
 ```php
 // using injection:
-public function handle(\Cviebrock\LaravelElasticsearch\Manager $elasticsearch)
+public function handle(\Cviebrock\LaravelElasticsearch\LumenManager $elasticsearch)
 {
-    $elasticsearch->ping();
+  $elasticsearch->ping();
 }
 
 // using application container:
 $elasticSearch = $this->app('elasticsearch');
 ```
 
-Of course, dependency injection and the application container work 
-for Laravel applications as well.
+(Of course, DI and the application container work for Laravel as well.)
 
 
-
-## Advanced Usage
-
-Because the package is a wrapper around the official Elastic client, you can 
-do pretty much anything with this package.  Not only can you perform standard 
-CRUD operations, but you can monitor the health of your Elastic cluster programmatically, 
-back it up, or make changes to it.  Some of these operations are done through 
-"namespaced" commands, which this package happily supports.
-
-To grab statistics for an index:
-
-```php
-$stats = Elasticsearch::indices()->stats(['index' => 'my_index']);
-$stats = Elasticsearch::nodes()->stats();
-$stats = Elasticsearch::cluster()->stats();
-```
-
-To create and restore snapshots (read the Elastic docs about creating repository paths and plugins first):
-
-```php
-$response = Elasticsearch::snapshots()->create($params);
-$response = Elasticsearch::snapshots()->restore($params);
-```
-
-To delete whole indices (be careful!):
-
-```php
-$response = Elasticsearch::indices()->delete(['index' => 'my_index']);
-```
-
-Please remember that this package is a thin wrapper around a large number of very 
-sophisticated and well-documented Elastic features.  Information about those features 
-and the methods and parameters used to call them can be found in the 
-[Elastic documentation](https://www.elastic.co/guide/en/elasticsearch/client/php-api/current/index.html).
-Help with using them is available via the [Elastic forums](https://discuss.elastic.co/) 
-and on sites like [Stack Overflow](https://stackoverflow.com/questions/tagged/elasticsearch).
-
-
-
-## Bugs, Suggestions, Contributions and Support
+## Bugs, Suggestions and Contributions
 
 Thanks to [everyone](https://github.com/cviebrock/laravel-elasticsearch/graphs/contributors)
 who has contributed to this project!
-
-Special thanks to 
-[JetBrains](https://www.jetbrains.com/?from=cviebrock/laravel-elasticsearch) for their 
-Open Source License Program ... and the excellent PHPStorm IDE, of course!
-
-[![JetBrains](./.github/jetbrains.svg)](https://www.jetbrains.com/?from=cviebrock/laravel-elasticsearch)
 
 Please use [Github](https://github.com/cviebrock/laravel-elasticsearch) for reporting bugs, 
 and making comments or suggestions.
