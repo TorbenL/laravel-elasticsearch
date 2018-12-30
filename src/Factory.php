@@ -1,5 +1,6 @@
 <?php namespace Cviebrock\LaravelElasticsearch;
 
+use Aws\ElasticsearchService\ElasticsearchPhpHandler;
 use Elasticsearch\ClientBuilder;
 use Psr\Log\LoggerInterface;
 
@@ -47,6 +48,10 @@ class Factory
     {
 
         $clientBuilder = ClientBuilder::create();
+
+        // Do the AWS magic
+	    $handler = new ElasticsearchPhpHandler(env('AWS_ES_REGION', 'us-east-1'));
+	    $clientBuilder->setHandler($handler);
 
         // Configure hosts
 
