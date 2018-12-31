@@ -51,10 +51,10 @@ class Factory
 
         // Do the AWS magic
 	    if(!empty($config['aws_region'])) {
-	    	exit('<pre>'.print_r($config, true));
 		    $handler = new ElasticsearchPhpHandler($config['aws_region']);
 		    $clientBuilder->setHandler( $handler );
 	    }
+	    exit('<pre>'.print_r($config, true));
 
         // Configure hosts
 
