@@ -54,7 +54,6 @@ class Factory
 		    $handler = new ElasticsearchPhpHandler($config['aws_region']);
 		    $clientBuilder->setHandler( $handler );
 	    }
-	    exit('<pre>'.print_r($config, true));
 
         // Configure hosts
 
