@@ -50,8 +50,8 @@ class Factory
         $clientBuilder = ClientBuilder::create();
 
         // Do the AWS magic
-	    if(env('AWS_ES_REGION', false)) {
-		    $handler = new ElasticsearchPhpHandler( env( 'AWS_ES_REGION', 'us-east-1' ) );
+	    if(!empty($config['aws_region'])) {
+		    $handler = new ElasticsearchPhpHandler($config['aws_region']);
 		    $clientBuilder->setHandler( $handler );
 	    }
 
